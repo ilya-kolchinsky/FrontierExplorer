@@ -4,7 +4,7 @@ import json
 from typing import List, Optional
 
 from config import settings
-from search.types import WorkItem
+from core.types import WorkItem
 
 SYSTEM = (
     "Your goal is to concisely summarize the given list of materials discussing a common topic.\n"
@@ -83,10 +83,12 @@ def summarize_results(
     llm_model: Optional[str],
     max_items: int | None = None,
 ) -> str:
+    if not works:
+        return "No results provided - nothing to summarize."
     backend = _pick_backend(llm_base_url, llm_model)
-    if not backend or not works:
+    if not backend:
         # Heuristic fallback: list top titles as bullets
-        bullets = [f"- {w.title} ({w.venue or w.source}, {w.year or 'n/a'})" for w in works[:min(8, max_items)]]
+        bullets = [f"- {w.title} ({w.venue or w.source}, {w.year or 'n/a'})" for w in works]
         return "Quick summary (no LLM configured):\n" + "\n".join(bullets)
 
     items_json = _serialize_items(works, max_items=max_items)

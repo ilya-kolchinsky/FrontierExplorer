@@ -3,7 +3,7 @@ from typing import List, Literal, Optional, Tuple, Dict, Union
 from rank_bm25 import BM25Okapi
 import math
 
-from search.types import WorkItem
+from core.types import WorkItem
 from config import settings
 
 RankingMode = Literal["relevance", "recency", "popularity", "custom"]

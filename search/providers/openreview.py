@@ -3,8 +3,8 @@ from datetime import datetime, timezone
 import asyncio
 
 from search.providers.base import Provider
-from search.types import ProviderResult
-from search.utils import get_http_client
+from core.types import ProviderResult
+from core.utils import get_http_client
 
 API_BASE = "https://api.openreview.net"
 

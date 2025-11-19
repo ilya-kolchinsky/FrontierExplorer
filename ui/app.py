@@ -1,21 +1,37 @@
+import os
+
 import streamlit as st
 from typing import List, Optional
 from datetime import date, timedelta
 
+from analysis.knowledge import build_knowledge_index
 from config import settings
+from llm.analyzer import answer_with_selected
 from llm.summarizer import summarize_results
 from search.orchestrator import frontier_search, PROVIDERS
 from llm.planner import generate_queries
 
 st.set_page_config(page_title="Frontier Explorer", layout="wide")
 st.title("Frontier Explorer")
-st.caption("Search state-of-the-art papers and repos according to the provided request")
+st.caption("Search state-of-the-art papers and repos")
 
 # Session state: keep latest results + params
 if "results" not in st.session_state:
     st.session_state["results"] = None
 if "params" not in st.session_state:
     st.session_state["params"] = {}
+
+# Chat state
+if "rag_index" not in st.session_state:
+    st.session_state.rag_index = None
+if "rag_for_ids" not in st.session_state:
+    st.session_state.rag_for_ids = set()
+if "chat_answer" not in st.session_state:
+    st.session_state.chat_answer = None
+if "chat_citations" not in st.session_state:
+    st.session_state.chat_citations = []
+if "chat_question" not in st.session_state:
+    st.session_state.chat_question = "Compare the provided works."
 
 
 def clear_selections():
@@ -52,7 +68,7 @@ with st.sidebar:
     show_mode = st.radio(
         "Display",
         options=["Results only", "Summary only", "Both"],
-        index=0,
+        index=2,
         help="Choose whether to show raw results, an LLM-generated summary, or both."
     )
 
@@ -146,7 +162,7 @@ if run:
         st.session_state["queries_used"] = [query]
         query_or_queries = query
 
-    with st.spinner("Searching frontier..."):
+    with st.spinner("Searching..."):
         dstr = earliest_date.strftime("%Y-%m-%d") if earliest_date else None
         works, clusters, errors = frontier_search(
             query_or_queries,
@@ -312,9 +328,13 @@ else:  # Results only
     render_results()
 
 st.markdown("---")
-st.subheader("Selection")
+st.subheader("Chat with Selected Works")
 
-if selected_ids:
+selected_items = [work_by_id[wid] for wid in selected_ids if wid in work_by_id]
+
+if not selected_ids:
+    st.caption("No works selected yet.")
+else:
     # Pretty list with links
     st.write(f"{len(selected_ids)} works selected (max {selection_limit} is possible):")
     for wid in selected_ids:
@@ -322,7 +342,31 @@ if selected_ids:
         if not w:  # defensive
             continue
         st.markdown(f"- [{w.title}]({w.url})  _{w.venue or w.source}{', ' + str(w.year) if w.year else ''}_")
-    if len(selected_ids) >= selection_limit:
-        st.warning("You’ve reached the selection limit. Unselect an item to pick a different one.")
-else:
-    st.caption("No works selected yet.")
+
+    # build index on demand or if selection changed
+    sel_set = set(selected_ids)
+    if st.session_state.rag_index is None or st.session_state.rag_for_ids != sel_set:
+        with st.spinner("Fetching full texts and indexing selected items..."):
+            idx = build_knowledge_index(selected_items, github_token=os.getenv("GITHUB_TOKEN"))
+            st.session_state.rag_index = idx
+            st.session_state.rag_for_ids = sel_set
+        st.success(f"Indexed {len(st.session_state.rag_index.chunks)} chunks from {len(sel_set)} items.")
+
+    # Controls (reuse LLM fields you already added in sidebar)
+    question = st.text_input("Your question", value="Compare the methodology and evaluation protocols across these works.")
+    st.caption("Ask detailed questions. The model sees full papers/repos/cards for the selected items.")
+    run_llm_btn = st.button("Chat with your items!", type="primary",
+                            disabled=(not question or st.session_state.rag_index is None or len(st.session_state.rag_index.chunks) == 0))
+    if run_llm_btn and question.strip():
+        llm_base_url = llm_base_url if 'llm_base_url' in locals() else None
+        llm_model = llm_model if 'llm_model' in locals() else None
+        with st.spinner("Thinking..."):
+            answer, _ = answer_with_selected(
+                question,
+                st.session_state.rag_index,
+                llm_base_url=llm_base_url or None,
+                llm_model=llm_model or None,
+                top_k=8,
+            )
+        st.markdown("### Answer")
+        st.markdown(answer)

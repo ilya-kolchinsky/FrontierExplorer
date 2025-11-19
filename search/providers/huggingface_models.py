@@ -3,8 +3,8 @@ from datetime import datetime, timezone
 from urllib.parse import urlencode
 
 from search.providers.base import Provider
-from search.types import ProviderResult
-from search.utils import get_http_client
+from core.types import ProviderResult
+from core.utils import get_http_client
 
 HF_MODELS_API = "https://huggingface.co/api/models"
 

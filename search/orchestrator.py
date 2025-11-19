@@ -6,13 +6,13 @@ from .providers.huggingface_datasets import HuggingFaceDatasetsProvider
 from .providers.huggingface_models import HuggingFaceModelsProvider
 from .providers.openreview import OpenReviewProvider
 from .providers.semanticscholar import SemanticScholarProvider
-from .types import WorkItem, Cluster
+from core.types import WorkItem, Cluster
 from config import settings
 from .providers.arxiv import ArxivProvider
 from .providers.github import GitHubProvider
 from .services.normalize import provider_result_to_work, dedupe
 from .services.ranking import rank_works, compute_work_scores
-from .services.embeddings import embed_texts
+from core.embeddings import embed_texts
 from .services.clustering import cluster_works
 
 PROVIDERS = {

@@ -3,8 +3,8 @@ from typing import List, Optional
 from xml.etree import ElementTree
 from urllib.parse import urlencode
 from search.providers.base import Provider
-from search.types import ProviderResult
-from search.utils import get_http_client
+from core.types import ProviderResult
+from core.utils import get_http_client
 
 ARXIV_API = "https://export.arxiv.org/api/query"
 

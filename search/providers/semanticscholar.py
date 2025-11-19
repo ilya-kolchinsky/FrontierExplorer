@@ -1,8 +1,8 @@
 from typing import List, Optional
 import asyncio
 from search.providers.base import Provider
-from search.types import ProviderResult
-from search.utils import get_http_client
+from core.types import ProviderResult
+from core.utils import get_http_client
 from config import settings
 
 S2_API = "https://api.semanticscholar.org/graph/v1/paper/search"

@@ -3,7 +3,7 @@ import numpy as np
 from sklearn.cluster import KMeans
 from sklearn.feature_extraction.text import TfidfVectorizer, ENGLISH_STOP_WORDS
 
-from search.types import WorkItem, Cluster
+from core.types import WorkItem, Cluster
 from config import settings
 
 # Domain stopwords we never want in labels (extend as needed)

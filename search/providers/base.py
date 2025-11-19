@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
-from search.types import ProviderResult
+from core.types import ProviderResult
 
 
 class Provider(ABC):

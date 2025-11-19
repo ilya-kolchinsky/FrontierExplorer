@@ -1,5 +1,5 @@
 from typing import Iterable, Dict, List
-from search.types import ProviderResult, WorkItem
+from core.types import ProviderResult, WorkItem
 
 
 def provider_result_to_work(r: ProviderResult) -> WorkItem:
