@@ -353,7 +353,7 @@ else:
         st.success(f"Indexed {len(st.session_state.rag_index.chunks)} chunks from {len(sel_set)} items.")
 
     # Controls (reuse LLM fields you already added in sidebar)
-    question = st.text_input("Your question", value="Compare the methodology and evaluation protocols across these works.")
+    question = st.text_input("Your question", value="Provide an extensive comparison of these works.")
     st.caption("Ask detailed questions. The model sees full papers/repos/cards for the selected items.")
     run_llm_btn = st.button("Chat with your items!", type="primary",
                             disabled=(not question or st.session_state.rag_index is None or len(st.session_state.rag_index.chunks) == 0))
@@ -361,7 +361,7 @@ else:
         llm_base_url = llm_base_url if 'llm_base_url' in locals() else None
         llm_model = llm_model if 'llm_model' in locals() else None
         with st.spinner("Thinking..."):
-            answer, _ = answer_with_selected(
+            answer, cites = answer_with_selected(
                 question,
                 st.session_state.rag_index,
                 llm_base_url=llm_base_url or None,
@@ -370,3 +370,7 @@ else:
             )
         st.markdown("### Answer")
         st.markdown(answer)
+        if cites:
+            st.caption("Sources:")
+            for c in cites:
+                st.markdown(f"- [{c['rank']}] [{c['title']}]({c['url']})")

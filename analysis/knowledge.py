@@ -10,7 +10,6 @@ async def _load_all(works: List[WorkItem], github_token: Optional[str]) -> Dict[
 
     async def _one(w: WorkItem):
         t = await load_fulltext_for_work(w, github_token=github_token)
-        print(t)
         if t and (w.id or ""):
             out[w.id] = t
     await asyncio.gather(*[_one(w) for w in works])
